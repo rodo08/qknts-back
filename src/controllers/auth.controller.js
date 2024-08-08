@@ -15,9 +15,14 @@ export const register = async (req, res) => {
     const newUser = new User({ username, email, password: hashedPassword });
 
     const registeredUser = await newUser.save();
+
     const token = await createAccessToken({ id: registeredUser._id });
 
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: process.env.NODE_ENV !== "development",
+      secure: true,
+      sameSite: "none",
+    });
 
     res.json({
       id: registeredUser._id,
