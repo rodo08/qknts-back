@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import { TOKEN_SECRET } from "../config.js";
 
-export const authRequired = async (req, res, next) => {
-  const { token } = await req.cookies;
+export const authRequired = (req, res, next) => {
+  const { token } = req.cookies;
   console.log(req.cookies);
   if (!token)
     return res.status(401).json({ message: "Unauthorized, no token provided" });

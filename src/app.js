@@ -6,6 +6,7 @@ import taskRoutes from "./routes/tasks.routes.js";
 import cors from "cors";
 
 const app = express();
+app.use(cookieParser());
 
 app.use(
   cors({
@@ -19,7 +20,6 @@ app.use(
 );
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.send("Welcome to the API");
