@@ -5,9 +5,8 @@ import { createAccessToken } from "../libs/jwt.js";
 import { TOKEN_SECRET } from "../config.js";
 
 export const register = async (req, res) => {
-  const { username, email, password } = req.body;
-
   try {
+    const { username, email, password } = req.body;
     const userFound = await User.findOne({ email });
     if (userFound) return res.status(400).json(["Email already in use"]);
 
@@ -28,8 +27,6 @@ export const register = async (req, res) => {
       id: registeredUser._id,
       username: registeredUser.username,
       email: registeredUser.email,
-      createdAt: registeredUser.createdAt,
-      updatedAt: registeredUser.updatedAt,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -37,9 +34,8 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
+    const { email, password } = req.body;
     const userFound = await User.findOne({ email });
 
     if (!userFound) return res.status(400).json({ message: "User not found" });
@@ -59,8 +55,6 @@ export const login = async (req, res) => {
       id: userFound._id,
       username: userFound.username,
       email: userFound.email,
-      createdAt: userFound.createdAt,
-      updatedAt: userFound.updatedAt,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -68,7 +62,12 @@ export const login = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.cookie("token", "", { expires: new Date(0) });
+  res.cookie("token", "", {
+    httpOnly: process.env.NODE_ENV !== "development",
+    secure: true,
+    sameSite: "none",
+    expires: new Date(0),
+  });
   return res.status(200).json({ message: "User logged out" });
 };
 
