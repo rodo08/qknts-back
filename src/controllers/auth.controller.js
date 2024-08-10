@@ -16,7 +16,7 @@ export const register = async (req, res) => {
     const registeredUser = await newUser.save();
 
     const token = await createAccessToken({ id: registeredUser._id });
-
+    console.log(process.env);
     res.cookie("token", token, {
       httpOnly: process.env.NODE_ENV !== "development",
       secure: true,
@@ -35,6 +35,7 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
+    console.log(process.env);
     const { email, password } = req.body;
     const userFound = await User.findOne({ email });
 
@@ -47,6 +48,7 @@ export const login = async (req, res) => {
     const token = await createAccessToken({ id: userFound._id });
 
     res.cookie("token", token, {
+      httpOnly: process.env.NODE_ENV !== "development",
       secure: true,
       sameSite: "none",
     });
@@ -89,6 +91,7 @@ export const profile = async (req, res) => {
 
 export const verifyToken = async (req, res) => {
   const { token } = req.cookies;
+  console.log(req.cookies);
   if (!token)
     return res.status(401).json({ message: "Unauthorized, no token provided" });
   jwt.verify(token, TOKEN_SECRET, async (err, user) => {
