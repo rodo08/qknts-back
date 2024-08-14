@@ -1,32 +1,39 @@
 import User from "../models/user.model.js";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { createAccessToken } from "../libs/jwt.js";
-import { TOKEN_SECRET } from "../config.js";
+// import { TOKEN_SECRET } from "../config.js";
 
 export const register = async (req, res) => {
+  const { username, email, password } = req.body;
   try {
-    const { username, email, password } = req.body;
     const userFound = await User.findOne({ email });
-    if (userFound) return res.status(400).json(["Email already in use"]);
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashedPassword });
+    if (userFound) {
+      return res.status(400).json(["User already exists"]);
+    }
 
-    const registeredUser = await newUser.save();
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    const token = await createAccessToken({ id: registeredUser._id });
-    console.log(process.env);
-    res.cookie("token", token, {
-      httpOnly: process.env.NODE_ENV !== "development",
-      secure: true,
-      sameSite: "none",
+    const newUser = new User({
+      username,
+      email,
+      password: passwordHash,
     });
 
+    const userSaved = await newUser.save();
+    const token = await createAccessToken({
+      id: userSaved._id,
+    });
+
+    res.cookie("token", token);
+
     res.json({
-      id: registeredUser._id,
-      username: registeredUser.username,
-      email: registeredUser.email,
+      _id: userSaved._id,
+      username: userSaved.username,
+      email: userSaved.email,
+      createdAt: userSaved.createdAt,
+      updatedAt: userSaved.updatedAt,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -34,29 +41,28 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    console.log(process.env);
-    const { email, password } = req.body;
     const userFound = await User.findOne({ email });
 
     if (!userFound) return res.status(400).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, userFound.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Incorrect password" });
 
-    const token = await createAccessToken({ id: userFound._id });
+    if (!isMatch) return res.status(400).json({ message: "Wrong password" });
 
-    res.cookie("token", token, {
-      httpOnly: process.env.NODE_ENV !== "development",
-      secure: true,
-      sameSite: "none",
+    const token = await createAccessToken({
+      id: userFound._id,
     });
 
+    res.cookie("token", token);
+
     res.json({
-      id: userFound._id,
+      _id: userFound._id,
       username: userFound.username,
       email: userFound.email,
+      createdAt: userFound.createdAt,
+      updatedAt: userFound.updatedAt,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -65,9 +71,6 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
   res.cookie("token", "", {
-    httpOnly: process.env.NODE_ENV !== "development",
-    secure: true,
-    sameSite: "none",
     expires: new Date(0),
   });
   return res.status(200).json({ message: "User logged out" });
@@ -76,9 +79,7 @@ export const logout = (req, res) => {
 export const profile = async (req, res) => {
   const userFound = await User.findById(req.user.id);
 
-  if (!userFound) {
-    return res.status(400).json({ message: "User not found" });
-  }
+  if (!userFound) return res.status(404).json({ message: "User not found" });
 
   return res.json({
     id: userFound._id,
@@ -89,25 +90,25 @@ export const profile = async (req, res) => {
   });
 };
 
-export const verifyToken = async (req, res) => {
-  const { token } = req.cookies;
-  console.log(req.cookies);
-  if (!token)
-    return res.status(401).json({ message: "Unauthorized, no token provided" });
-  jwt.verify(token, TOKEN_SECRET, async (err, user) => {
-    if (err)
-      return res
-        .status(401)
-        .json({ message: "Unauthorized, invalid token provided" });
+// export const verifyToken = async (req, res) => {
+//   const { token } = req.cookies;
+//   console.log(req.cookies);
+//   if (!token)
+//     return res.status(401).json({ message: "Unauthorized, no token provided" });
+//   jwt.verify(token, TOKEN_SECRET, async (err, user) => {
+//     if (err)
+//       return res
+//         .status(401)
+//         .json({ message: "Unauthorized, invalid token provided" });
 
-    const userFound = await User.findById(user.id);
-    if (!userFound)
-      return res.status(401).json({ message: "Unauthorized. User not found" });
+//     const userFound = await User.findById(user.id);
+//     if (!userFound)
+//       return res.status(401).json({ message: "Unauthorized. User not found" });
 
-    return res.json({
-      id: userFound._id,
-      username: userFound.username,
-      email: userFound.email,
-    });
-  });
-};
+//     return res.json({
+//       id: userFound._id,
+//       username: userFound.username,
+//       email: userFound.email,
+//     });
+//   });
+// };
