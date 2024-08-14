@@ -26,11 +26,7 @@ export const register = async (req, res) => {
       id: userSaved._id,
     });
 
-    res.cookie("token", token, {
-      httpOnly: true, // Impide el acceso a la cookie desde JavaScript del lado del cliente
-      secure: process.env.NODE_ENV === "production", // Solo en HTTPS en producción
-      sameSite: "None", // Permite el envío de la cookie en solicitudes entre sitios
-    });
+    res.cookie("token", token);
 
     res.json({
       _id: userSaved._id,
@@ -59,7 +55,7 @@ export const login = async (req, res) => {
       id: userFound._id,
     });
 
-    res.cookie("token", token);
+    res.cookie("token", token, { sameSite: "None", secure: true });
 
     res.json({
       _id: userFound._id,
