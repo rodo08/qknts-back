@@ -10,18 +10,22 @@ export const getTasks = async (req, res) => {
 };
 
 export const createTask = async (req, res) => {
-  const { title, description, date } = req.body;
+  try {
+    const { title, description, date } = req.body;
 
-  console.log(req.user);
+    console.log(req.user);
 
-  const newTask = new Task({
-    title,
-    description,
-    date,
-    user: req.user.id,
-  });
-  const savedTask = await newTask.save();
-  res.json(savedTask);
+    const newTask = new Task({
+      title,
+      description,
+      date,
+      user: req.user.id,
+    });
+    const savedTask = await newTask.save();
+    res.json(savedTask);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 export const getTask = async (req, res) => {
