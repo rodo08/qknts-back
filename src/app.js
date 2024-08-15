@@ -6,11 +6,12 @@ import authRoutes from "./routes/auth.routes.js";
 import taskRoutes from "./routes/tasks.routes.js";
 
 const app = express();
+app.disable("x-powered-by");
 
 app.use(
   cors({
-    origin: "*",
-   // credentials: true,
+    origin: ["http://localhost:5173", "https://qknts.netlify.app"],
+    credentials: true,
   })
 );
 app.use(morgan("dev"));
