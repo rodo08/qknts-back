@@ -1,4 +1,4 @@
-// import "dotenv/config";
+import "dotenv/config"; // Esto carga automáticamente las variables de entorno
 import app from "./app.js";
 import { connectDB } from "./db.js";
 
